@@ -24,7 +24,7 @@ public class UserService {
 	
 	public User CreateUser(User user) {
 		
-		Role adminRole = roleRepository.findByName(Erole.ROLE_ADMIN).orElseThrow();
+		Role adminRole = roleRepository.findByName(Erole.ROLE_USER).orElseThrow();
 		
 		List<Role> roles = new ArrayList<>();
 		roles.add(adminRole);

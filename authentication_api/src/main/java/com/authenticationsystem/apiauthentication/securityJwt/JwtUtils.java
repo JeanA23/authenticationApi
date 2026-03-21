@@ -1,0 +1,102 @@
+package com.authenticationsystem.apiauthentication.securityJwt;
+
+import java.security.Key;
+import java.util.Date;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import com.authenticationsystem.apiauthentication.security.UserDetailsImpl;
+
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+
+
+
+@Component
+public class JwtUtils {
+	
+	private static final Logger
+
+	logger = LoggerFactory.getLogger(JwtUtils.class);
+
+	@Value("${jwt.security.key}")
+	private String jwtSecret;
+
+	@Value("${jwt.expiration}")
+	private String jwtExpirationMs;
+
+	public String generateJwtToken(UserDetailsImpl userPrincipal) {
+
+		return generateTokenFromUsername(userPrincipal.getUsername());
+	}
+	
+
+	public String generateTokenFromUsername(String username) {
+
+		int expirationValue = Integer.valueOf(jwtExpirationMs);
+		//System.out.println(expirationValue);
+
+		return Jwts.builder()
+				.setSubject((username))
+				.setIssuedAt(new Date())
+				.setExpiration(new Date(new Date().getTime() + expirationValue))
+				.signWith(key(),SignatureAlgorithm.HS256)
+				.compact();
+	}
+
+	private Key key() {
+
+		return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
+
+	}
+
+	public String getUserNameFromJwtToken(String token) {
+
+		return Jwts.parserBuilder()
+				.setSigningKey(key())
+				.build()
+				.parseClaimsJws(token)
+				.getBody()
+				.getSubject();
+	}
+
+	public boolean validateJwtToken(String authToken) {
+
+		try {
+
+			Jwts.parserBuilder()
+			.setSigningKey(key())
+			.build()
+			.parse(authToken);
+
+			return true;
+		} catch (MalformedJwtException e) {
+
+			logger.error("Jeton JWT invalide : {}", e.getMessage());
+		}
+
+		catch (ExpiredJwtException e) {
+
+			logger.error("Le jeton JWT a expiré : {}", e.getMessage());
+
+		} catch (UnsupportedJwtException e) {
+
+			logger.error("Le jeton JWT n'est pas pris en charge : {}", e.getMessage());
+
+		} catch (IllegalArgumentException e) {
+
+			logger.error("La chaîne de revendications JWT est vide : {}", e.getMessage());
+
+		}
+
+		return false;
+	}
+}

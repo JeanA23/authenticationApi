@@ -13,7 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import com.authenticationsystem.auth_api.utils.Response;
+import com.authenticationsystem.apiauthentication.utils.Response;
 
 @ControllerAdvice
 public class ErrorHandler {

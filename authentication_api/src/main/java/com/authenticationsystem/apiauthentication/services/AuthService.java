@@ -10,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.authenticationsystem.apiauthentication.dto.LoginRequest;
@@ -29,6 +30,7 @@ import com.authenticationsystem.apiauthentication.utils.Response;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
+@Service
 @RequiredArgsConstructor
 public class AuthService {
 
@@ -46,12 +48,12 @@ public class AuthService {
 	@Transactional
 	public Response<Object> register(RegisterRequest request) {
 
-		if (userRepository.existsByUsername(request.getUsername())) {
+		if(userRepository.existsByUsername(request.getUsername())) {
 
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already registered");
 		}
 
-		if (userRepository.existsByEmail(request.getEmail())) {
+		if(userRepository.existsByEmail(request.getEmail())) {
 
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already registered");
 		}
@@ -65,11 +67,11 @@ public class AuthService {
 				.username(request.getUsername())
 				.build();
 
-		Role adminRole = roleRepository.findByName(Erole.ROLE_USER)
+		Role userRole = roleRepository.findByName(Erole.ROLE_USER)
 				.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 
 		List<Role> roles = new ArrayList<>();
-		roles.add(adminRole);
+		roles.add(userRole);
 		newUser.setRoles(roles);
 
 		userRepository.save(newUser);
@@ -102,12 +104,22 @@ public class AuthService {
 
 		String jwt = jwtUtils.generateJwtToken(userDetails);
 
-		List<String> roles = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+		List<String> roles = userDetails.getAuthorities().stream()
+				.map(GrantedAuthority::getAuthority).toList();
 
-		LoginResponse loginResponse = LoginResponse.builder().username(userDetails.getUsername())
-				.email(userDetails.getEmail()).roles(roles).accessToken(jwt).tokenType("Bearer").build();
+		LoginResponse loginResponse = LoginResponse.builder()
+				.username(userDetails.getUsername())
+				.email(userDetails.getEmail())
+				.roles(roles)
+				.accessToken(jwt)
+				.tokenType("Bearer")
+				.build();
 
-		return Response.builder().responseCode(200).responseMessage("SUCCESS").data(loginResponse).build();
+		return Response.builder()
+				.responseCode(200)
+				.responseMessage("SUCCESS")
+				.data(loginResponse)
+				.build();
 	}
 
 	@Transactional

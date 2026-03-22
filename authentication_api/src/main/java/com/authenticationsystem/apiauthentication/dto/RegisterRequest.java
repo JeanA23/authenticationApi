@@ -1,5 +1,10 @@
 package com.authenticationsystem.apiauthentication.dto;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.authenticationsystem.apiauthentication.models.Role;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -14,9 +19,9 @@ import lombok.NoArgsConstructor;
 @Builder
 public class RegisterRequest {
 
-	
+	@NotBlank
+	@Size(min = 3, max = 20)
 	private String name;
-	
 	
 	@NotBlank
 	@Size(min = 3, max = 20)
@@ -30,4 +35,5 @@ public class RegisterRequest {
 	@NotBlank
 	@Size(max = 50)
 	private String password;
+	
 }

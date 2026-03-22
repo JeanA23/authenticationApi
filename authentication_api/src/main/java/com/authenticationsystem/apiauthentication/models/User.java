@@ -3,7 +3,6 @@ package com.authenticationsystem.apiauthentication.models;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.authenticationsystem.auth_api.models.Roles;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

@@ -3,7 +3,6 @@ package com.authenticationsystem.apiauthentication.models;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -16,6 +15,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 
 @Data
 @AllArgsConstructor
@@ -35,7 +35,7 @@ public class User {
 	
 	private String username;
 	
-	@ManyToMany(fetch= FetchType.LAZY)
+	@ManyToMany(fetch= FetchType.EAGER)
 	@JoinTable(name = "users_roles",
 	joinColumns = @JoinColumn(name = "user_id"),
 	inverseJoinColumns = @JoinColumn(name = "role_id"))

@@ -26,6 +26,8 @@ public class UserDetailsImpl implements UserDetails{
 	
 	private String email;
 	
+	private String username;
+	
 	@JsonIgnore
 	private String password;
 	
@@ -56,7 +58,12 @@ public class UserDetailsImpl implements UserDetails{
 				.collect(Collectors.toList());
 		
 		return new UserDetailsImpl(
-				user.getId(), user.getName(), user.getPassword(), user.getEmail(), authorities);
+				user.getId(),
+				user.getName(),
+				user.getEmail(),
+				user.getUsername(),
+				user.getPassword(),
+				authorities);
 	}
 
 	 @Override

@@ -37,7 +37,7 @@ public class WebSecurityConfig {
 		
 		return authConfig.getAuthenticationManager();
 	}
-	
+
 	@Bean
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		

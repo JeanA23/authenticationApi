@@ -7,11 +7,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.authenticationsystem.apiauthentication.models.RefreshToken;
+import com.authenticationsystem.apiauthentication.models.User;
 import com.authenticationsystem.apiauthentication.repositories.RefreshTokenRepository;
 import com.authenticationsystem.apiauthentication.repositories.UserRepository;
 
+import lombok.RequiredArgsConstructor;
 
 
+@RequiredArgsConstructor
 @Service
 public class RefreshTokenService {
 
@@ -21,16 +24,15 @@ public class RefreshTokenService {
     private  final RefreshTokenRepository refreshTokenRepository; 
     private  final UserRepository userRepository; 
 
-    public  RefreshTokenService (RefreshTokenRepository repo, UserRepository userRepo) { 
-        this .refreshTokenRepository = repo; 
-        this .userRepository = userRepo; 
-    } 
+     
 
     public RefreshToken createRefreshToken (Long userId) { 
     	
-        RefreshToken  token  =  new  RefreshToken (); 
+    	User existById = userRepository.findById(userId).orElseThrow();
+    	
+        RefreshToken  token  =  new  RefreshToken(); 
         
-        token.setUser(userRepository.findById(userId).get()); 
+        token.setUser(existById); 
         
         token.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs)); 
         
@@ -40,6 +42,7 @@ public class RefreshTokenService {
     } 
 
     public  boolean  isTokenExpired (RefreshToken token) { 
+    	
         return token.getExpiryDate().isBefore(Instant.now()); 
     }
 }

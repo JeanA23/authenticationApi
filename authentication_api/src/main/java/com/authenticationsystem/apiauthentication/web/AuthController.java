@@ -81,6 +81,7 @@ public class AuthController {
 			String newJwt = jwtUtils.generateTokenFromUsername(token.getUser().getUsername());
 
 			return ResponseEntity.ok(Map.of("token", newJwt));
+			
 		}).orElse(ResponseEntity.badRequest().body("Invalid refresh token."));
 	}
 

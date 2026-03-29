@@ -1,15 +1,13 @@
 package com.authenticationsystem.apiauthentication.services;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.authenticationsystem.apiauthentication.models.Erole;
-import com.authenticationsystem.apiauthentication.models.Role;
 import com.authenticationsystem.apiauthentication.models.User;
+import com.authenticationsystem.apiauthentication.repositories.PasswordRestTokenRepository;
 import com.authenticationsystem.apiauthentication.repositories.RoleRepository;
 import com.authenticationsystem.apiauthentication.repositories.UserRepository;
 
@@ -22,27 +20,7 @@ public class UserService {
 	private final UserRepository userRepository;
 	private final RoleRepository roleRepository;
 	private final PasswordEncoder passwordEncoder;
-	
-	
-	public User CreateUser(User user) {
-		
-		String hashedPassword = passwordEncoder.encode(user.getPassword());
-		
-		User newUser = User.builder()
-				.name(user.getName())
-				.email(user.getEmail())
-				.password(hashedPassword)
-				.build();				
-		
-		Role adminRole = roleRepository.findByName(Erole.ROLE_USER).orElseThrow();
-		
-		List<Role> roles = new ArrayList<>();
-		roles.add(adminRole);
-		newUser.setRoles(roles);
-		
-		
-		return userRepository.save(newUser);
-	}
+	private final PasswordRestTokenRepository passwordRestTokenRepository;
 	
 	
 	public List<User> getAllUsers() {

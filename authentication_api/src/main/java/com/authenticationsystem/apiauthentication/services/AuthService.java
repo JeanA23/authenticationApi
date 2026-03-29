@@ -2,6 +2,7 @@ package com.authenticationsystem.apiauthentication.services;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,12 +16,16 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.authenticationsystem.apiauthentication.dto.LoginRequest;
 import com.authenticationsystem.apiauthentication.dto.LoginResponse;
+import com.authenticationsystem.apiauthentication.dto.PasswordRedeemRequest;
+import com.authenticationsystem.apiauthentication.dto.PasswordResetRequest;
 import com.authenticationsystem.apiauthentication.dto.RegisterRequest;
 import com.authenticationsystem.apiauthentication.dto.RegisterUserResponse;
 import com.authenticationsystem.apiauthentication.dto.UserResponse;
 import com.authenticationsystem.apiauthentication.models.Erole;
+import com.authenticationsystem.apiauthentication.models.PasswordResetToken;
 import com.authenticationsystem.apiauthentication.models.Role;
 import com.authenticationsystem.apiauthentication.models.User;
+import com.authenticationsystem.apiauthentication.repositories.PasswordRestTokenRepository;
 import com.authenticationsystem.apiauthentication.repositories.RoleRepository;
 import com.authenticationsystem.apiauthentication.repositories.UserRepository;
 import com.authenticationsystem.apiauthentication.security.UserDetailsImpl;
@@ -43,6 +48,10 @@ public class AuthService {
 	private final RoleRepository roleRepository;
 
 	private final UserRepository userRepository;
+	
+	private final PasswordRestTokenRepository tokenRepository;
+	
+	private final EmailService emailService;
 
 	// Register Function
 	@Transactional
@@ -138,5 +147,62 @@ public class AuthService {
 				.email(user.getEmail()).roles(user.getRoles().stream().map(Role::getName).toList()).build();
 
 		return Response.builder().responseCode(200).responseMessage("SUCCESS").data(userResponse).build();
+	}
+	
+	
+	@Transactional
+	public Response<Object> redeemPassword(PasswordRedeemRequest request) {
+
+	    userRepository.findByEmail(request.getEmail()).ifPresent(user -> {
+
+	        
+	        tokenRepository.findByUser(user).ifPresent(tokenRepository::delete);
+
+	        
+	        String token = UUID.randomUUID().toString();
+	        PasswordResetToken resetToken = new PasswordResetToken(token, user);
+	        tokenRepository.save(resetToken);
+
+	    
+	        emailService.sendPasswordResetEmail(user.getEmail(), token);
+	    });
+
+	    
+	    return Response.builder()
+	            .responseCode(200)
+	            .responseMessage("SUCCESS")
+	            .data("If this email address is registered, a link has been sent.")
+	            .build();
+	}
+
+	
+	@Transactional
+	public Response<Object> resetPassword(PasswordResetRequest request) {
+
+	    PasswordResetToken resetToken = tokenRepository.findByToken(request.getToken())
+	            .orElseThrow(() -> new ResponseStatusException(
+	                HttpStatus.BAD_REQUEST, "Token invalide"));
+
+	    
+	    if (resetToken.isExpired()) {
+	        tokenRepository.delete(resetToken);
+	        throw new ResponseStatusException(
+	            HttpStatus.BAD_REQUEST, "Token expiré, refaites une demande");
+	    }
+
+	    
+	    User user = resetToken.getUser();
+	    user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+	    userRepository.save(user);
+
+	    
+	    tokenRepository.delete(resetToken);
+
+	    return Response.builder()
+	            .responseCode(200)
+	            .responseMessage("SUCCESS")
+	            .data("Mot de passe mis à jour avec succès.")
+	            .build();
+
 	}
 }
